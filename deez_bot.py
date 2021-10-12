@@ -663,12 +663,6 @@ callback_queries = CallbackQueryHandler(handle_callback_queries,
 
 dispatcher.add_handler(callback_queries)
 
-tg_bot_api.start_webhook(
-    listen="0.0.0.0",
-    port=int(PORT),
-    url_path=webhook,
-    webhook_url='https://samfunmusicbot-new.herokuapp.com/' + webhook)
-
 
 def checking(context):
     dir_size = get_download_dir_size()
@@ -687,6 +681,12 @@ def checking(context):
 
 
 job.run_repeating(checking, interval=time_sleep, first=35)
+
+tg_bot_api.start_webhook(
+    listen="0.0.0.0",
+    port=int(PORT),
+    url_path=webhook,
+    webhook_url='https://samfunmusicbot-new.herokuapp.com/' + webhook)
 
 tg_user_start()
 
