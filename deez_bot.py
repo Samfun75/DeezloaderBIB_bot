@@ -670,7 +670,7 @@ tg_bot_api.start_webhook(
     webhook_url='https://samfunmusicbot-new.herokuapp.com/' + webhook)
 
 
-def checking():
+def checking(context):
     dir_size = get_download_dir_size()
     print(
         f"STATUS DOWNLOADS {queues_started[0]}/{queues_finished[0]} {dir_size}/{download_dir_max_size}"
