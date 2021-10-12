@@ -6,6 +6,7 @@ token =
 [pyrogram]
 api_id = 
 api_hash = 
+session_string = 
 
 [telegram]
 bot_token = 
@@ -14,3 +15,10 @@ bot_token =
 key = 
 secret = 
 host = 
+
+[database]
+db_host = 
+db_username = 
+db_password = 
+db_name = 
+db_type = 

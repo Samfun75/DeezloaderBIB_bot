@@ -1,3 +1,5 @@
-/logs/
 *.ini
 **/__pycache__/
+/logs/
+/Records/
+/Songs/

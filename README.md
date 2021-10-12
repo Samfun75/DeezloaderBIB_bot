@@ -40,7 +40,7 @@ To install it just type this command
   Go and modify [deez_settings.ini](https://github.com/An0nimia/DeezloaderBIB_bot/blob/heroku/deez_settings.ini)
 
   - mail, password, token(arl) are deezer credentials used for login
-  - the pyrogram api_id & api_hash can be created [here](https://my.telegram.org/auth?to=apps)
+  - the pyrogram api_id & api_hash can be created [here](https://my.telegram.org/auth?to=apps) and session_string can be generated after login with app.export_session_string()
   - for create a telegram bot look [here](https://t.me/BotFather)
   - for acrcloud key, secret, host look at [acrcloud](https://docs.acrcloud.com/tutorials/recognize-music)
 
