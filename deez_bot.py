@@ -11,7 +11,7 @@ from utils.special_thread import magicThread
 from utils.converter_bytes import convert_bytes_to
 from helpers.download_help import DOWNLOAD_HELP, DW
 from telegram.error import BadRequest, Unauthorized
-from configs.set_configs import tg_bot_api, tg_user_api
+from configs.set_configs import tg_bot_api, tg_user_api, webhook
 from utils.utils_data import create_response_article, shazam_song
 
 from helpers.MongoDb_help import DeezUsers
@@ -54,7 +54,6 @@ queues_finished = [0]
 tg_user_api.start()
 users_data = {}
 roots_data = {}
-webhook = 'zK79of6eALxBczYDiLneqLAFtsNuXXuUisaqj7CeJQVoUCsQCGHSamFun'
 PORT = int(os.environ.get('PORT', 8443))
 
 dw_helper = DOWNLOAD_HELP(queues_started, queues_finished, tg_user_api)

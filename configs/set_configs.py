@@ -20,6 +20,7 @@ if bool(os.environ.get("ENV", None)):
     api_id = int(os.environ.get("api_id", None))
     api_hash = os.environ.get("api_hash", None)
     session_string = os.environ.get("session_string", None)
+    webhook = os.environ.get("webhook", None)
 
     __acrcloud_config = {
         "key": __acrcloud_key,
@@ -50,6 +51,7 @@ else:
     api_id = int(config['pyrogram']['api_id'])
     api_hash = config['pyrogram']['api_hash']
     session_string = config['pyrogram']['session_string']
+    webhook = config['telegram']['webhook']
 
     __acrcloud_config = {
         "key": __acrcloud_key,
