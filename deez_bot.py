@@ -663,8 +663,14 @@ callback_queries = CallbackQueryHandler(handle_callback_queries,
 
 dispatcher.add_handler(callback_queries)
 
+tg_bot_api.start_webhook(
+    listen="0.0.0.0",
+    port=int(PORT),
+    url_path=webhook,
+    webhook_url='https://samfunmusicbot-new.herokuapp.com/' + webhook)
 
-def checking(context):
+
+def checking():
     dir_size = get_download_dir_size()
     print(
         f"STATUS DOWNLOADS {queues_started[0]}/{queues_finished[0]} {dir_size}/{download_dir_max_size}"
@@ -672,21 +678,17 @@ def checking(context):
 
     if (dir_size >= download_dir_max_size) or (queues_started[0]
                                                == queues_finished[0]):
+        dispatcher.stop()
         kill_threads(users_data)
         sleep(3)
         queues_started[0] = 0
         queues_finished[0] = 0
         clear_download_dir()
         clear_recorded_dir()
+        dispatcher.start()
 
 
-job.run_repeating(checking, interval=time_sleep, first=35)
-
-tg_bot_api.start_webhook(
-    listen="0.0.0.0",
-    port=int(PORT),
-    url_path=webhook,
-    webhook_url='https://samfunmusicbot-new.herokuapp.com/' + webhook)
+job.run_repeating(checking, interval=time_sleep, first=40)
 
 tg_user_start()
 
