@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import logging
 import os
 from time import sleep
 from telegram import ParseMode
@@ -686,12 +687,18 @@ def checking():
             queues_finished[0] = 0
             clear_download_dir()
             clear_recorded_dir()
-            tg_bot_api.start_webhook(
-                listen="0.0.0.0",
-                port=int(PORT),
-                url_path=webhook,
-                webhook_url='https://samfunmusicbot-new.herokuapp.com/' +
-                webhook)
+            while True:
+                try:
+                    tg_bot_api.start_webhook(
+                        listen="0.0.0.0",
+                        port=int(PORT),
+                        url_path=webhook,
+                        webhook_url='https://samfunmusicbot-new.herokuapp.com/'
+                        + webhook)
+                    break
+                except OSError as e:
+                    logging.error(e.strerror)
+                    sleep(5)
 
 
 tmux_session = None

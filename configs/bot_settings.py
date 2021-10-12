@@ -20,7 +20,7 @@ recursive_quality = True
 recursive_download = True
 make_zip = True
 method_save = 2
-download_dir_max_size = 6  #GB
+download_dir_max_size = 1  #GB
 donation_link = "https://www.paypal.com/paypalme/An0nimia"
 
 supported_link = [
