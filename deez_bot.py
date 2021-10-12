@@ -48,6 +48,7 @@ check_config_bot()
 mode_bot = 2
 bot_chat_id = tg_bot_api.bot.id
 bot = tg_bot_api.bot
+job = tg_bot_api.job_queue
 banned_ids = get_banned_ids()
 queues_started = [0]
 queues_finished = [0]
@@ -669,51 +670,29 @@ tg_bot_api.start_webhook(
     webhook_url='https://samfunmusicbot-new.herokuapp.com/' + webhook)
 
 
-def checking():
-    while True:
-        sleep(time_sleep)
-        dir_size = get_download_dir_size()
-        print(
-            f"STATUS DOWNLOADS {queues_started[0]}/{queues_finished[0]} {dir_size}/{download_dir_max_size}"
-        )
+def checking(context):
+    dir_size = get_download_dir_size()
+    print(
+        f"STATUS DOWNLOADS {queues_started[0]}/{queues_finished[0]} {dir_size}/{download_dir_max_size}"
+    )
 
-        if (dir_size >= download_dir_max_size) or (queues_started[0]
-                                                   == queues_finished[0]):
-            tg_bot_api.stop()
-            kill_threads(users_data)
-            sleep(3)
-            queues_started[0] = 0
-            queues_finished[0] = 0
-            clear_download_dir()
-            clear_recorded_dir()
-            while True:
-                try:
-                    tg_bot_api.start_webhook(
-                        listen="0.0.0.0",
-                        port=int(PORT),
-                        url_path=webhook,
-                        webhook_url='https://samfunmusicbot-new.herokuapp.com/'
-                        + webhook)
-                    break
-                except OSError as e:
-                    logging.error(e.strerror)
-                    sleep(5)
+    if (dir_size >= download_dir_max_size) or (queues_started[0]
+                                               == queues_finished[0]):
+        kill_threads(users_data)
+        sleep(3)
+        queues_started[0] = 0
+        queues_finished[0] = 0
+        clear_download_dir()
+        clear_recorded_dir()
 
 
-tmux_session = None
-
-check_thread = magicThread(target=checking)
-check_thread.start()
+job.run_repeating(checking, interval=time_sleep, first=35)
 
 tg_user_start()
 
 print("\nEXITTING WAIT A FEW SECONDS :)")
 tg_bot_api.stop()
 tg_user_api.stop()
-check_thread.kill()
 kill_threads(users_data)
 clear_download_dir()
 clear_recorded_dir()
-
-if tmux_session:
-    tmux_session.kill_session()

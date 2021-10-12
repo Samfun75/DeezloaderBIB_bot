@@ -28,7 +28,7 @@ supported_link = [
     "deezer.page.link"
 ]
 
-time_sleep = 8
+time_sleep = 10
 seconds_limits_album = 30000  #seconds
 seconds_limits_track = 7200
 upload_max_size_user = 2  #GB
