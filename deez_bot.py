@@ -13,7 +13,9 @@ from telegram.error import BadRequest, Unauthorized
 from configs.set_configs import tg_bot_api, tg_user_api
 from utils.utils_data import create_response_article, shazam_song
 
-logging.basicConfig(level=logging.ERROR)
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger('pyrogram').setLevel(logging.ERROR)
+
 from helpers.MongoDb_help import DeezUsers
 
 from configs.customs import (not_found_query_gif, shazam_audio_query,

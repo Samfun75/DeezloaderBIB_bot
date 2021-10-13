@@ -344,7 +344,8 @@ class DW:
 
         tg_bot.send_message(chat_id=self.__chat_id, text=err_str)
 
-        tg_bot.send_message(chat_id=user_errors, text=err_str + "\n" + error)
+        tg_bot.send_message(chat_id=user_errors,
+                            text=err_str + "\n" + str(error))
 
         log_error(error, exc_info=True)
         log_error(err_str)

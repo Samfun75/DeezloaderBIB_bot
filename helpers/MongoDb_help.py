@@ -61,7 +61,10 @@ class DeezSongs:
                     "quality": quality
                 }, {
                     "file_id": 1,
-                    "_id": 0
+                    "_id": 0,
+                    "link": 0,
+                    "chat_id": 0,
+                    "quality": 0
                 })
         except Exception as e:
             tg_bot.send_message(
