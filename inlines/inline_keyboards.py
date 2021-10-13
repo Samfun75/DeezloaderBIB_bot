@@ -153,7 +153,8 @@ def create_banned_keyboard():
     l_users_ids = len(users_ids)
 
     keyboard_banned = [[
-        InlineKeyboardButton(user_id[0], callback_data=f"/unban_{user_id[0]}")
+        InlineKeyboardButton(user_id['chat_id'],
+                             callback_data=f"/unban_{user_id['chat_id']}")
         for user_id in users_ids[line:line + 2]
     ] for line in range(0, l_users_ids, 2)]
 

@@ -354,7 +354,7 @@ class DW:
         match = DeezSongs().select_dwsongs(link_path, self.__n_quality)
 
         if match:
-            file_id = match[0]
+            file_id = match['file_id']
 
             try:
                 self.__upload_audio(file_id)
@@ -372,7 +372,7 @@ class DW:
         match = DeezSongs().select_dwsongs(link_path, self.__n_quality)
 
         if match:
-            file_id = match[0]
+            file_id = match['file_id']
 
             if file_id != "TOO BIG":
                 print(file_id)
@@ -396,7 +396,7 @@ class DW:
 
                         continue
 
-                    c_file_id = c_match[0]
+                    c_file_id = c_match['file_id']
 
                     try:
                         self.__upload_audio(c_file_id)

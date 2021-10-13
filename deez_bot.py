@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import logging
-import os
 from time import sleep
 from telegram import ParseMode
 from logging import basicConfig, WARN
@@ -11,9 +10,10 @@ from utils.special_thread import magicThread
 from utils.converter_bytes import convert_bytes_to
 from helpers.download_help import DOWNLOAD_HELP, DW
 from telegram.error import BadRequest, Unauthorized
-from configs.set_configs import tg_bot_api, tg_user_api, webhook
+from configs.set_configs import tg_bot_api, tg_user_api
 from utils.utils_data import create_response_article, shazam_song
 
+logging.basicConfig(level=logging.ERROR)
 from helpers.MongoDb_help import DeezUsers
 
 from configs.customs import (not_found_query_gif, shazam_audio_query,
@@ -48,14 +48,12 @@ check_config_bot()
 mode_bot = 2
 bot_chat_id = tg_bot_api.bot.id
 bot = tg_bot_api.bot
-job = tg_bot_api.job_queue
 banned_ids = get_banned_ids()
 queues_started = [0]
 queues_finished = [0]
 tg_user_api.start()
 users_data = {}
 roots_data = {}
-PORT = int(os.environ.get('PORT', 8443))
 
 dw_helper = DOWNLOAD_HELP(queues_started, queues_finished, tg_user_api)
 
@@ -409,7 +407,7 @@ def send_global_msg_command(update: Update, context):
     all_user = DeezUsers().select_all_users()
 
     for user_id in all_user:
-        c_user_id = user_id[0]
+        c_user_id = user_id['chat_id']
 
         try:
             method(c_user_id, to_send)
@@ -663,38 +661,43 @@ callback_queries = CallbackQueryHandler(handle_callback_queries,
 
 dispatcher.add_handler(callback_queries)
 
-tg_bot_api.start_webhook(
-    listen="0.0.0.0",
-    port=int(PORT),
-    url_path=webhook,
-    webhook_url='https://samfunmusicbot-new.herokuapp.com/' + webhook)
+tg_bot_api.start_polling()
 
 
-def checking(context):
-    dir_size = get_download_dir_size()
-    print(
-        f"STATUS DOWNLOADS {queues_started[0]}/{queues_finished[0]} {dir_size}/{download_dir_max_size}"
-    )
+def checking():
+    while True:
+        sleep(time_sleep)
+        dir_size = get_download_dir_size()
+        print(
+            f"STATUS DOWNLOADS {queues_started[0]}/{queues_finished[0]} {dir_size}/{download_dir_max_size}"
+        )
 
-    if (dir_size >= download_dir_max_size) or (queues_started[0]
-                                               == queues_finished[0]):
-        dispatcher.stop()
-        kill_threads(users_data)
-        sleep(3)
-        queues_started[0] = 0
-        queues_finished[0] = 0
-        clear_download_dir()
-        clear_recorded_dir()
-        dispatcher.start()
+        if (dir_size >= download_dir_max_size) or (queues_started[0]
+                                                   == queues_finished[0]):
+            tg_bot_api.stop()
+            kill_threads(users_data)
+            sleep(3)
+            queues_started[0] = 0
+            queues_finished[0] = 0
+            clear_download_dir()
+            clear_recorded_dir()
+            tg_bot_api.start_polling()
 
 
-job.run_repeating(checking, interval=time_sleep, first=40)
+tmux_session = None
+
+check_thread = magicThread(target=checking)
+check_thread.start()
 
 tg_user_start()
 
 print("\nEXITTING WAIT A FEW SECONDS :)")
 tg_bot_api.stop()
 tg_user_api.stop()
+check_thread.kill()
 kill_threads(users_data)
 clear_download_dir()
 clear_recorded_dir()
+
+if tmux_session:
+    tmux_session.kill_session()

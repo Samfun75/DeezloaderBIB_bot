@@ -23,11 +23,11 @@ def users_set_cache(chat_id, users_data):
             DeezUsers().write_users_settings(chat_id, quality, zips, tracks,
                                              lang, search_method)
         else:
-            quality = match[0]
-            zips = bool(match[1])
-            tracks = bool(match[2])
-            lang = match[3]
-            search_method = match[4]
+            quality = match['quality']
+            zips = bool(match['zips'])
+            tracks = bool(match['tracks'])
+            lang = match['lang']
+            search_method = match['search_method']
 
         users_data[chat_id] = {
             "quality": quality,
@@ -112,15 +112,11 @@ def get_banned_ids():
 
 
 def get_tot_downloads():
-    match = DeezSongs().select_all_downloads()
-    tot = len(match)
-    return tot
+    return DeezSongs().select_all_downloads()
 
 
 def get_tot_users():
-    match = DeezUsers().select_all_users()
-    tot = len(match)
-    return tot
+    return len(DeezUsers().select_all_users())
 
 
 def get_info():

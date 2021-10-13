@@ -166,7 +166,15 @@ class DeezUsers:
 
     def select_all_users(self):
         try:
-            return self.Users_collection.count_documents({})
+            return self.Users_collection.find({}, {
+                "_id": 0,
+                "chat_id": 1,
+                "quality": 0,
+                "zips": 0,
+                "tracks": 0,
+                "lang": 0,
+                "search_method": 0
+            })
         except Exception as e:
             tg_bot.send_message(
                 chat_id=user_errors,

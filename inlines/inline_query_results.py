@@ -48,7 +48,7 @@ def create_result_article_track_audio(datas, quality):
         match = DeezSongs().select_dwsongs(link, quality)
 
         if match:
-            audio_file_id = match[0]
+            audio_file_id = match['file_id']
 
             article = InlineQueryResultCachedAudio(
                 id=ids,
@@ -77,7 +77,7 @@ def create_result_article_track_and_audio(datas, quality):
         match = DeezSongs().select_dwsongs(link, quality)
 
         if match:
-            audio_file_id = match[0]
+            audio_file_id = match['file_id']
 
             article = InlineQueryResultCachedAudio(
                 id=ids,
