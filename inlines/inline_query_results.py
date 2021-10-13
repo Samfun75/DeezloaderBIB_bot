@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from helpers.MongoDb_help import DeezSongs
+from helpers.MongoDb_help import DeezS
 from utils.utils import my_round, get_url_path
 from configs.customs import not_found_query_gif
 
@@ -45,7 +45,7 @@ def create_result_article_track_audio(datas, quality):
     for data in datas:
         ids = data['id']
         link = get_url_path(data['link'])
-        match = DeezSongs().select_dwsongs(link, quality)
+        match = DeezS.select_dwsongs(link, quality)
 
         if match:
             audio_file_id = match['file_id']
@@ -74,7 +74,7 @@ def create_result_article_track_and_audio(datas, quality):
     for data in datas:
         ids = data['id']
         link = get_url_path(data['link'])
-        match = DeezSongs().select_dwsongs(link, quality)
+        match = DeezS.select_dwsongs(link, quality)
 
         if match:
             audio_file_id = match['file_id']

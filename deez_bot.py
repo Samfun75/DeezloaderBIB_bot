@@ -17,7 +17,7 @@ from utils.utils_data import create_response_article, shazam_song
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger('pyrogram').setLevel(logging.ERROR)
 
-from helpers.MongoDb_help import DeezUsers
+from helpers.MongoDb_help import DeezU
 
 from configs.customs import (not_found_query_gif, shazam_audio_query,
                              shazam_function_msg, max_download_user_msg,
@@ -69,7 +69,7 @@ to_ban = Filters.user(banned_ids)
 
 
 def ban_chat_id(chat_id):
-    DeezUsers().write_banned(chat_id)
+    DeezU.write_banned(chat_id)
     to_ban.add_chat_ids(chat_id)
 
 
@@ -198,7 +198,7 @@ def handle_callback_queries(update: Update, context):
         c_data = data.replace("/unban_", "")
         c_chat_id = int(c_data)
         text = "BANNED USERS"
-        DeezUsers().delete_banned(c_chat_id)
+        DeezU.delete_banned(c_chat_id)
         to_ban.remove_chat_ids(c_chat_id)
         c_keyboard = create_banned_keyboard()
         answer = f"UNBANNED {c_chat_id}"
@@ -263,6 +263,9 @@ def audio_handler(update: Update, context):
     date = msg.date
     help_check_user(chat_id, date)
     audio = msg.audio
+
+    if msg.from_user.is_bot:
+        return
 
     if not audio:
         audio = msg.voice
@@ -408,7 +411,7 @@ def send_global_msg_command(update: Update, context):
         to_send = photo[0].file_id
         method = bot.send_photo
 
-    all_user = DeezUsers().select_all_users()
+    all_user = DeezU.select_all_users()
 
     for user_id in all_user:
         c_user_id = user_id['chat_id']

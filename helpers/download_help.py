@@ -16,7 +16,7 @@ from deezloader.__dee_api__ import API as deezer_API
 from configs.set_configs import deez_api, tg_bot_api
 from inlines.inline_keyboards import create_keyboard_artist
 
-from .MongoDb_help import DeezSongs
+from .MongoDb_help import DeezS
 
 from deezloader.exceptions import (NoDataApi, InvalidLink, AlbumNotFound)
 
@@ -44,7 +44,7 @@ tg_bot = tg_bot_api.bot
 
 def write_db(track_md5, file_id, n_quality, chat_id):
     try:
-        DeezSongs().write_dwsongs(track_md5, file_id, n_quality, chat_id)
+        DeezS.write_dwsongs(track_md5, file_id, n_quality, chat_id)
     except IntegrityError:
         pass
 
@@ -352,7 +352,7 @@ class DW:
 
     def __check_track(self, link):
         link_path = get_url_path(link)
-        match = DeezSongs().select_dwsongs(link_path, self.__n_quality)
+        match = DeezS.select_dwsongs(link_path, self.__n_quality)
 
         if match:
             file_id = match['file_id']
@@ -360,7 +360,7 @@ class DW:
             try:
                 self.__upload_audio(file_id)
             except BadRequest:
-                DeezSongs().delete_dwsongs(file_id)
+                DeezS.delete_dwsongs(file_id)
                 self.__check_track(link)
         else:
             try:
@@ -370,7 +370,7 @@ class DW:
 
     def __check_album(self, link, tracks):
         link_path = get_url_path(link)
-        match = DeezSongs().select_dwsongs(link_path, self.__n_quality)
+        match = DeezS.select_dwsongs(link_path, self.__n_quality)
 
         if match:
             file_id = match['file_id']
@@ -380,15 +380,15 @@ class DW:
                 try:
                     self.__upload_zip(file_id)
                 except BadRequest:
-                    DeezSongs().delete_dwsongs(file_id)
+                    DeezS.delete_dwsongs(file_id)
                     self.__check_album(link, tracks)
 
             if self.__send_to_user_tracks:
                 for track in tracks:
                     c_link = track['link']
                     c_link_path = get_url_path(c_link)
-                    c_match = DeezSongs().select_dwsongs(
-                        c_link_path, self.__n_quality)
+                    c_match = DeezS.select_dwsongs(c_link_path,
+                                                   self.__n_quality)
 
                     if not c_match:
                         tg_bot.send_message(
@@ -402,7 +402,7 @@ class DW:
                     try:
                         self.__upload_audio(c_file_id)
                     except BadRequest:
-                        DeezSongs().delete_dwsongs(c_file_id)
+                        DeezS.delete_dwsongs(c_file_id)
                         self.__check_track(c_link)
         else:
             try:

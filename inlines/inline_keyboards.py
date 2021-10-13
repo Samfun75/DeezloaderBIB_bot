@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 from deezloader.__utils__ import get_ids
-from helpers.MongoDb_help import DeezUsers
+from helpers.MongoDb_help import DeezU
 from deezloader.__deezer_settings__ import qualities
 
 from telegram import (InlineKeyboardMarkup, InlineKeyboardButton)
@@ -149,7 +149,7 @@ def create_shazamed_keyboard(track_link, album_link, artist_link):
 
 
 def create_banned_keyboard():
-    users_ids = DeezUsers().select_all_banned()
+    users_ids = DeezU.select_all_banned()
     l_users_ids = len(users_ids)
 
     keyboard_banned = [[

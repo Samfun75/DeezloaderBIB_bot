@@ -171,3 +171,7 @@ class DeezUsers:
             tg_bot.send_message(
                 chat_id=user_errors,
                 text=f"**{user_session}**\nDatabase Error: {e}")
+
+
+DeezS = DeezSongs()
+DeezU = DeezUsers()

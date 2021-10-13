@@ -6,12 +6,12 @@ from configs.customs import (bot_settings_config, banning_msg1, banning_msg2,
                              version, bot_name, creator, active_since,
                              last_reset)
 
-from helpers.MongoDb_help import DeezSongs, DeezUsers
+from helpers.MongoDb_help import DeezS, DeezU
 
 
 def users_set_cache(chat_id, users_data):
     if not chat_id in users_data:
-        match = DeezUsers().select_users_settings(chat_id)
+        match = DeezU.select_users_settings(chat_id)
 
         if not match:
             quality = bot_settings_config[0][2]
@@ -20,8 +20,8 @@ def users_set_cache(chat_id, users_data):
             lang = bot_settings_config[3][2]
             search_method = bot_settings_config[4][2]
 
-            DeezUsers().write_users_settings(chat_id, quality, zips, tracks,
-                                             lang, search_method)
+            DeezU.write_users_settings(chat_id, quality, zips, tracks, lang,
+                                       search_method)
         else:
             quality = match['quality']
             zips = bool(match['zips'])
@@ -49,8 +49,8 @@ def user_setting_save_db(chat_id, user_data):
     lang = user_data['lang']
     search_method = user_data['search_method']
 
-    DeezUsers().update_users_settings(chat_id, quality, zips, tracks, lang,
-                                      search_method)
+    DeezU.update_users_settings(chat_id, quality, zips, tracks, lang,
+                                search_method)
 
 
 def check_flood(date, user_data, chat_id):
@@ -81,7 +81,7 @@ def check_flood(date, user_data, chat_id):
     times = user_data['times']
 
     if times == warning_for_banning:
-        DeezUsers().write_banned(chat_id)
+        DeezU.write_banned(chat_id)
         return banning_msg2, 1
 
 
@@ -94,7 +94,7 @@ def kill_threads(users_data):
 
 
 def is_banned(chat_id):
-    match = DeezUsers().select_banned(chat_id)
+    match = DeezU.select_banned(chat_id)
 
     if match:
         return True
@@ -103,7 +103,7 @@ def is_banned(chat_id):
 
 
 def get_banned_ids():
-    match = DeezUsers().select_all_banned()
+    match = DeezU.select_all_banned()
 
     chat_ids = [chat_doc['chat_id'] for chat_doc in match]
 
@@ -112,11 +112,11 @@ def get_banned_ids():
 
 
 def get_tot_downloads():
-    return DeezSongs().select_all_downloads()
+    return DeezS.select_all_downloads()
 
 
 def get_tot_users():
-    return len(DeezUsers().select_all_users())
+    return len(DeezU.select_all_users())
 
 
 def get_info():
