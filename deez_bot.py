@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import os
 import logging
 from time import sleep
 from telegram import ParseMode
@@ -10,7 +11,7 @@ from utils.special_thread import magicThread
 from utils.converter_bytes import convert_bytes_to
 from helpers.download_help import DOWNLOAD_HELP, DW
 from telegram.error import BadRequest, Unauthorized
-from configs.set_configs import tg_bot_api, tg_user_api
+from configs.set_configs import tg_bot_api, tg_user_api, webhook
 from utils.utils_data import create_response_article, shazam_song
 
 logging.basicConfig(level=logging.DEBUG)
@@ -56,6 +57,7 @@ queues_finished = [0]
 tg_user_api.start()
 users_data = {}
 roots_data = {}
+PORT = int(os.environ.get('PORT', 8443))
 
 dw_helper = DOWNLOAD_HELP(queues_started, queues_finished, tg_user_api)
 
@@ -663,7 +665,11 @@ callback_queries = CallbackQueryHandler(handle_callback_queries,
 
 dispatcher.add_handler(callback_queries)
 
-tg_bot_api.start_polling()
+tg_bot_api.start_webhook(
+    listen='0.0.0.0',
+    port=PORT,
+    url_path=webhook,
+    webhook_url='https://samfunmusicbot-new.herokuapp.com/' + webhook)
 
 
 def checking():
@@ -676,17 +682,15 @@ def checking():
 
         if (dir_size >= download_dir_max_size) or (queues_started[0]
                                                    == queues_finished[0]):
-            tg_bot_api.stop()
+            dispatcher.stop()
             kill_threads(users_data)
             sleep(3)
             queues_started[0] = 0
             queues_finished[0] = 0
             clear_download_dir()
             clear_recorded_dir()
-            tg_bot_api.start_polling()
+            dispatcher.start()
 
-
-tmux_session = None
 
 check_thread = magicThread(target=checking)
 check_thread.start()
@@ -700,6 +704,3 @@ check_thread.kill()
 kill_threads(users_data)
 clear_download_dir()
 clear_recorded_dir()
-
-if tmux_session:
-    tmux_session.kill_session()
