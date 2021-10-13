@@ -21,7 +21,7 @@ recursive_download = True
 make_zip = True
 method_save = 2
 download_dir_max_size = 1  #GB
-donation_link = "https://www.paypal.com/paypalme/An0nimia"
+donation_link = "https://www.paypal.com/paypalme/Samfun75"
 
 supported_link = [
     "www.deezer.com", "open.spotify.com", "deezer.com", "spotify.com",

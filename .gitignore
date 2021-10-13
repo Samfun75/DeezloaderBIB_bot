@@ -3,3 +3,5 @@
 /logs/
 /Records/
 /Songs/
+/.vscode/
+**_test.py
