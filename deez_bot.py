@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import os
-import logging
 from time import sleep
 from telegram import ParseMode
 from logging import basicConfig, WARN
@@ -261,9 +260,6 @@ def audio_handler(update: Update, context):
     help_check_user(chat_id, date)
     audio = msg.audio
 
-    if msg.from_user.is_bot:
-        return
-
     if not audio:
         audio = msg.voice
 
@@ -315,7 +311,7 @@ def audio_handler(update: Update, context):
         reply_to_message_id=msg_id,
         reply_markup=reply_markup,
         caption=(shazam_audio_query %
-                 (artist, genre, album, label, release_date, title)))
+                 (title, artist, album, label, release_date, genre)))
 
 
 def start_command(update: Update, context):

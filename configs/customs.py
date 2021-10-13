@@ -67,12 +67,12 @@ send_image_playlist_query = ("📅 Creation: %s\
 	\n🎧 Tracks amount: %d\
 	\n👥 Fans on Deezer: %d")
 
-shazam_audio_query = ("👤 Artist: %s\
-	\nGenre: %s\
+shazam_audio_query = ("🎧 Track title: %s\
+    \n👤 Artist: %s\
 	\n💽 Album: %s\
-	\nLabel: %s\
+	\n🔖 Label: %s\
 	\n📅 Release date: %s\
-	\n🎧 Track title: %s")
+    \n🎇 Genre: %s")
 
 inline_textes = {
     "download_track": {

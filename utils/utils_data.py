@@ -42,14 +42,18 @@ def shazam_song(song):
 
     album = song_tags['album']['name']
     label = song_tags['label']
-    external_ids = song_tags['external_ids']
+    external_metadata = song_tags['external_metadata']
 
-    if "upc" in external_ids:
-        upc = f"upc:{external_ids['upc']}"
-
-    if "isrc" in external_ids:
-        isrc = f"isrc:{external_ids['isrc']}"
+    if "isrc" in external_metadata:
+        isrc = f"isrc:{external_metadata['isrc']}"
         data_track = deezer_api.get_track(isrc)
+        track_link = data_track['link']
+        album_link = data_track['album']['link']
+        artist_link = data_track['artist']['link']
+        image_url = data_track['album']['cover_xl']
+    elif "deezer" in external_metadata:
+        track_id = external_metadata['deezer']['track']['id']
+        data_track = deezer_api.get_track(track_id)
         track_link = data_track['link']
         album_link = data_track['album']['link']
         artist_link = data_track['artist']['link']
@@ -57,6 +61,7 @@ def shazam_song(song):
     else:
         track_link = None
         album_link = None
+        artist_link = None
         image_url = None
 
     release_date = song_tags['release_date']

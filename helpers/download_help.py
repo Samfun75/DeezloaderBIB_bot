@@ -171,7 +171,6 @@ class DW:
 
             tg_bot.send_message(chat_id=self.__chat_id,
                                 text=f"Cannot download {url} :(")
-
             return
 
         progress_message_id = tg_bot.send_message(
