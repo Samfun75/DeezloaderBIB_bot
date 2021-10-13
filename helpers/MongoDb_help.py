@@ -61,10 +61,7 @@ class DeezSongs:
                     "quality": quality
                 }, {
                     "file_id": 1,
-                    "_id": 0,
-                    "link": 0,
-                    "chat_id": 0,
-                    "quality": 0
+                    "_id": 0
                 })
         except Exception as e:
             tg_bot.send_message(
@@ -169,15 +166,7 @@ class DeezUsers:
 
     def select_all_users(self):
         try:
-            return self.Users_collection.find({}, {
-                "_id": 0,
-                "chat_id": 1,
-                "quality": 0,
-                "zips": 0,
-                "tracks": 0,
-                "lang": 0,
-                "search_method": 0
-            })
+            return self.Users_collection.find({}, {"_id": 0, "chat_id": 1})
         except Exception as e:
             tg_bot.send_message(
                 chat_id=user_errors,
