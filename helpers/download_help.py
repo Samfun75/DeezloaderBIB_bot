@@ -124,6 +124,7 @@ class DW:
         f_format = track.file_format
         tag = track.tags
         track_quality = track.quality
+        caption = ""
 
         file_name = set_path(tag, self.__n_quality, f_format, 1)
         track_size = get_size(c_path, "gb")
@@ -138,20 +139,16 @@ class DW:
             return
 
         if track_quality != self.__n_quality:
-            tg_bot.send_message(
-                chat_id=self.__chat_id,
-                text=
-                (f"⚠ The {title} - {performer} can't be downloaded in {self.__quality} quality :( ⚠\
-					\nIT HAS BEEN DOWNLOADED IN {track_quality}"))
+            caption = f"⚠ {self.__quality} Unavailable. Downloaded {track_quality}"
 
-        file_id = self.__tg_user_api.send_audio(
-            chat_id=bunker_channel,
-            audio=c_path,
-            thumb=io_image,
-            duration=duration,
-            performer=performer,
-            title=title,
-            file_name=file_name).audio.file_id
+        file_id = self.__tg_user_api.send_audio(chat_id=bunker_channel,
+                                                audio=c_path,
+                                                thumb=io_image,
+                                                duration=duration,
+                                                performer=performer,
+                                                title=title,
+                                                file_name=file_name,
+                                                caption=caption).audio.file_id
 
         write_db(track_md5, file_id, track_quality, self.__chat_id)
 
@@ -285,13 +282,10 @@ class DW:
                 return
 
             track_quality = track.quality
+            caption = ""
 
             if track_quality != self.__n_quality:
-                tg_bot.send_message(
-                    chat_id=self.__chat_id,
-                    text=
-                    (f"⚠ The {title} - {performer} can't be downloaded in {self.__quality} quality :( ⚠\
-						\nIT HAS BEEN DOWNLOADED IN {track_quality}"))
+                caption = f"⚠ {self.__quality} quality unavailable. Downloaded in {track_quality}."
 
             file_id = self.__tg_user_api.send_audio(
                 chat_id=bunker_channel,
@@ -300,7 +294,8 @@ class DW:
                 duration=duration,
                 performer=performer,
                 title=title,
-                file_name=file_name).audio.file_id
+                file_name=file_name,
+                caption=caption).audio.file_id
 
             write_db(track_md5, file_id, track_quality, self.__chat_id)
 
