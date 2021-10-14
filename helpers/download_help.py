@@ -85,7 +85,7 @@ class DW:
         except KeyError:
             pass
 
-    def __upload_audio(self, file_id):
+    def __upload_audio(self, file_id, caption=""):
         if self.__send_to_user_tracks:
             tg_bot.send_chat_action(chat_id=self.__chat_id,
                                     action=ChatAction.UPLOAD_AUDIO)
@@ -96,7 +96,9 @@ class DW:
                 with redirect_stdout(f):
                     print(f"UPLOADING: {file_id}")
 
-            tg_bot.send_audio(chat_id=self.__chat_id, audio=file_id)
+            tg_bot.send_audio(chat_id=self.__chat_id,
+                              audio=file_id,
+                              caption=caption)
 
     def __upload_zip(self, file_id):
         if self.__send_to_user_zips:
@@ -152,7 +154,7 @@ class DW:
 
         write_db(track_md5, file_id, track_quality, self.__chat_id)
 
-        self.__upload_audio(file_id)
+        self.__upload_audio(file_id, caption=caption)
 
     def __download_track(self, url):
         try:
@@ -285,7 +287,7 @@ class DW:
             caption = ""
 
             if track_quality != self.__n_quality:
-                caption = f"⚠ {self.__quality} quality unavailable. Downloaded in {track_quality}."
+                caption = f"⚠ {self.__quality} quality unavailable. Downloaded {track_quality}."
 
             file_id = self.__tg_user_api.send_audio(
                 chat_id=bunker_channel,
@@ -299,7 +301,7 @@ class DW:
 
             write_db(track_md5, file_id, track_quality, self.__chat_id)
 
-            self.__upload_audio(file_id)
+            self.__upload_audio(file_id, caption=caption)
         else:
             tg_bot.send_message(chat_id=self.__chat_id,
                                 text=f"Cannot download {track.song_name} :(")
