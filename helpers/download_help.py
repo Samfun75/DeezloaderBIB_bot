@@ -152,8 +152,7 @@ class DW:
                                              file_name=file_name,
                                              caption=caption)
 
-        write_db(track_md5, file.chat.id, file.message_id, track_quality,
-                 self.__chat_id)
+        write_db(track_md5, file.chat.id, file.message_id, track_quality)
 
         self.__upload_audio(file.audio.file_id, caption=caption)
 
