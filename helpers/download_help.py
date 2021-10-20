@@ -85,7 +85,7 @@ class DW:
         except KeyError:
             pass
 
-    def __upload_audio(self, chat_id, msg_id, caption=""):
+    def __upload_audio(self, file_id, caption=""):
         if self.__send_to_user_tracks:
             tg_bot.send_chat_action(chat_id=self.__chat_id,
                                     action=ChatAction.UPLOAD_AUDIO)
@@ -94,13 +94,13 @@ class DW:
 
             with open(log_uploads, "a") as f:
                 with redirect_stdout(f):
-                    print(f"UPLOADING: {msg_id}")
-            file_msg = tg_user_api.get_messages(chat_id, msg_id)
+                    print(f"UPLOADING: {file_id}")
+
             tg_bot.send_audio(chat_id=self.__chat_id,
-                              audio=file_msg.audio.file_id,
+                              audio=file_id,
                               caption=caption)
 
-    def __upload_zip(self, chat_id, msg_id):
+    def __upload_zip(self, file_id):
         if self.__send_to_user_zips:
             tg_bot.send_chat_action(chat_id=self.__chat_id,
                                     action=ChatAction.UPLOAD_DOCUMENT)
@@ -109,10 +109,9 @@ class DW:
 
             with open(log_uploads, "a") as f:
                 with redirect_stdout(f):
-                    print(f"UPLOADING: {msg_id}")
-            file_msg = tg_user_api.get_messages(chat_id, msg_id)
-            tg_bot.send_document(chat_id=self.__chat_id,
-                                 document=file_msg.document.file_id)
+                    print(f"UPLOADING: {file_id}")
+
+            tg_bot.send_document(chat_id=self.__chat_id, document=file_id)
 
     def __upload_audio_track(self, track: Track):
         c_path = track.song_path
@@ -156,7 +155,7 @@ class DW:
         write_db(track_md5, file.chat.id, file.message_id, track_quality,
                  self.__chat_id)
 
-        self.__upload_audio(file.chat.id, file.message_id, caption=caption)
+        self.__upload_audio(file.audio.file_id, caption=caption)
 
     def __download_track(self, url):
         try:
@@ -248,7 +247,7 @@ class DW:
 
         write_db(album_md5, file.chat.id, file.message_id, album_quality)
 
-        self.__upload_zip(file.chat.id, file.message_id)
+        self.__upload_zip(file.document.file_id)
 
     def __upload_audio_album(self, track: Track, image_bytes1, num_track,
                              nb_tracks, progress_message_id):
@@ -298,11 +297,11 @@ class DW:
                                                  performer=performer,
                                                  title=title,
                                                  file_name=file_name,
-                                                 caption=caption).audio.file_id
+                                                 caption=caption)
 
             write_db(track_md5, file.chat.id, file.message_id, track_quality)
 
-            self.__upload_audio(file.chat.id, file.message_id, caption=caption)
+            self.__upload_audio(file.audio.file_id, caption=caption)
         else:
             tg_bot.send_message(chat_id=self.__chat_id,
                                 text=f"Cannot download {track.song_name} :(")
@@ -353,7 +352,9 @@ class DW:
 
         if match:
             try:
-                self.__upload_audio(match['chat_id'], match['msg_id'])
+                file_msg = tg_user_api.get_messages(match['chat_id'],
+                                                    match['msg_id'])
+                self.__upload_audio(file_msg.audio.file_id)
             except BadRequest:
                 DeezS.delete_dwsongs(match['msg_id'])
                 self.__check_track(link)
@@ -371,9 +372,10 @@ class DW:
             msg_id = match['msg_id']
 
             if msg_id != 0:
-                print(msg_id)
                 try:
-                    self.__upload_zip(match['chat_id'], match['msg_id'])
+                    file_msg = tg_user_api.get_messages(
+                        match['chat_id'], match['msg_id'])
+                    self.__upload_zip(file_msg.document.file_id)
                 except BadRequest:
                     DeezS.delete_dwsongs(match['msg_id'])
                     self.__check_album(link, tracks)
@@ -382,6 +384,15 @@ class DW:
                 c_links = [get_url_path(track['link'] for track in tracks)]
                 c_matchs = DeezS.select_multiple_dwsongs(
                     c_links, self.__n_quality)
+                messages = []
+
+                if c_matchs.retrieved > 0:
+                    messages = tg_user_api.get_messages(
+                        bunker_channel, [
+                            tracks['msg_id']
+                            for tracks in c_matchs if tracks['msg_id'] != 0
+                        ])
+
                 for track in tracks:
                     c_link = track['link']
                     c_link_path = get_url_path(c_link)
@@ -392,9 +403,12 @@ class DW:
                         self.__check_track(c_link)
                         continue
 
+                    audio_file_id = next(
+                        (msg.audio.file_id for msg in messages
+                         if c_match['msg_id'] == msg.message_id), None)
+
                     try:
-                        self.__upload_audio(c_match['chat_id'],
-                                            c_match['msg_id'])
+                        self.__upload_audio(audio_file_id)
                     except BadRequest:
                         DeezS.delete_dwsongs(c_match['msg_id'])
                         self.__check_track(c_link)
@@ -409,6 +423,7 @@ class DW:
         matchs = []
         spotify = {}
         ignore = {}
+        messages = []
 
         if mode == "deezer":
             links = [get_url_path(track['link'] for track in tracks)]
@@ -436,6 +451,12 @@ class DW:
         if links:
             matchs = DeezS.select_multiple_dwsongs(links, self.__n_quality)
 
+            if matchs.retrieved > 0:
+                messages = tg_user_api.get_messages(bunker_channel, [
+                    tracks['msg_id']
+                    for tracks in matchs if tracks['msg_id'] != 0
+                ])
+
         for c_idx, track in enumerate(tracks):
             if mode == 'spotify':
                 if c_idx in ignore:
@@ -458,8 +479,13 @@ class DW:
                 self.__check_track(c_link)
                 continue
 
+            audio_file_id = next(
+                (msg.audio.file_id
+                 for msg in messages if c_match['msg_id'] == msg.message_id),
+                None)
+
             try:
-                self.__upload_audio(c_match['chat_id'], c_match['msg_id'])
+                self.__upload_audio(audio_file_id)
             except BadRequest:
                 DeezS.delete_dwsongs(c_match['msg_id'])
                 self.__check_track(c_link)
