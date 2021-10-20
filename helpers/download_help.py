@@ -13,7 +13,7 @@ from deezloader.models.album import Album
 from deezloader.__utils__ import what_kind
 from deezloader.exceptions import TrackNotFound
 from deezloader.__dee_api__ import API as deezer_API
-from configs.set_configs import deez_api, tg_bot_api
+from configs.set_configs import deez_api, tg_bot_api, tg_user_api
 from inlines.inline_keyboards import create_keyboard_artist
 
 from .MongoDb_help import DeezS
@@ -42,9 +42,9 @@ deezer_api = deezer_API()
 tg_bot = tg_bot_api.bot
 
 
-def write_db(track_md5, file_id, n_quality, chat_id):
+def write_db(track_md5, chat_id, msg_id, n_quality):
     try:
-        DeezS.write_dwsongs(track_md5, file_id, n_quality, chat_id)
+        DeezS.write_dwsongs(track_md5, chat_id, msg_id, n_quality)
     except IntegrityError:
         pass
 
@@ -143,18 +143,19 @@ class DW:
         if track_quality != self.__n_quality:
             caption = f"⚠ {self.__quality} Unavailable. Downloaded {track_quality}"
 
-        file_id = self.__tg_user_api.send_audio(chat_id=bunker_channel,
-                                                audio=c_path,
-                                                thumb=io_image,
-                                                duration=duration,
-                                                performer=performer,
-                                                title=title,
-                                                file_name=file_name,
-                                                caption=caption).audio.file_id
+        file = self.__tg_user_api.send_audio(chat_id=bunker_channel,
+                                             audio=c_path,
+                                             thumb=io_image,
+                                             duration=duration,
+                                             performer=performer,
+                                             title=title,
+                                             file_name=file_name,
+                                             caption=caption)
 
-        write_db(track_md5, file_id, track_quality, self.__chat_id)
+        write_db(track_md5, file.chat.id, file.message_id, track_quality,
+                 self.__chat_id)
 
-        self.__upload_audio(file_id, caption=caption)
+        self.__upload_audio(file.audio.file_id, caption=caption)
 
     def __download_track(self, url):
         try:
@@ -233,20 +234,20 @@ class DW:
 					, MAX {upload_max_size_user} GB\
 					, CURRENT {zip_size} GB :(")
 
-            write_db(album_md5, "TOO BIG", album_quality, self.__chat_id)
+            write_db(album_md5, 0, 0, album_quality)
 
             return
 
-        file_id = self.__tg_user_api.send_document(
+        file = self.__tg_user_api.send_document(
             chat_id=bunker_channel,
             document=path_zip,
             thumb=image_io2,
             progress=self.__progress_status,
-            progress_args=progress_args).document.file_id
+            progress_args=progress_args)
 
-        write_db(album_md5, file_id, album_quality, self.__chat_id)
+        write_db(album_md5, file.chat.id, file.message_id, album_quality)
 
-        self.__upload_zip(file_id)
+        self.__upload_zip(file.document.file_id)
 
     def __upload_audio_album(self, track: Track, image_bytes1, num_track,
                              nb_tracks, progress_message_id):
@@ -289,19 +290,18 @@ class DW:
             if track_quality != self.__n_quality:
                 caption = f"⚠ {self.__quality} quality unavailable. Downloaded {track_quality}."
 
-            file_id = self.__tg_user_api.send_audio(
-                chat_id=bunker_channel,
-                audio=c_path,
-                thumb=image_io1,
-                duration=duration,
-                performer=performer,
-                title=title,
-                file_name=file_name,
-                caption=caption).audio.file_id
+            file = self.__tg_user_api.send_audio(chat_id=bunker_channel,
+                                                 audio=c_path,
+                                                 thumb=image_io1,
+                                                 duration=duration,
+                                                 performer=performer,
+                                                 title=title,
+                                                 file_name=file_name,
+                                                 caption=caption)
 
-            write_db(track_md5, file_id, track_quality, self.__chat_id)
+            write_db(track_md5, file.chat.id, file.message_id, track_quality)
 
-            self.__upload_audio(file_id, caption=caption)
+            self.__upload_audio(file.audio.file_id, caption=caption)
         else:
             tg_bot.send_message(chat_id=self.__chat_id,
                                 text=f"Cannot download {track.song_name} :(")
@@ -351,12 +351,12 @@ class DW:
         match = DeezS.select_dwsongs(link_path, self.__n_quality)
 
         if match:
-            file_id = match['file_id']
-
             try:
-                self.__upload_audio(file_id)
+                file_msg = tg_user_api.get_messages(match['chat_id'],
+                                                    match['msg_id'])
+                self.__upload_audio(file_msg.audio.file_id)
             except BadRequest:
-                DeezS.delete_dwsongs(file_id)
+                DeezS.delete_dwsongs(match['msg_id'])
                 self.__check_track(link)
         else:
             try:
@@ -369,42 +369,126 @@ class DW:
         match = DeezS.select_dwsongs(link_path, self.__n_quality)
 
         if match:
-            file_id = match['file_id']
+            msg_id = match['msg_id']
 
-            if file_id != "TOO BIG":
-                print(file_id)
+            if msg_id != 0:
                 try:
-                    self.__upload_zip(file_id)
+                    file_msg = tg_user_api.get_messages(
+                        match['chat_id'], match['msg_id'])
+                    self.__upload_zip(file_msg.document.file_id)
                 except BadRequest:
-                    DeezS.delete_dwsongs(file_id)
+                    DeezS.delete_dwsongs(match['msg_id'])
                     self.__check_album(link, tracks)
 
             if self.__send_to_user_tracks:
+                c_links = [get_url_path(track['link'] for track in tracks)]
+                c_matchs = DeezS.select_multiple_dwsongs(
+                    c_links, self.__n_quality)
+                messages = []
+
+                if c_matchs.retrieved > 0:
+                    messages = tg_user_api.get_messages(
+                        bunker_channel, [
+                            tracks['msg_id']
+                            for tracks in c_matchs if tracks['msg_id'] != 0
+                        ])
+
                 for track in tracks:
                     c_link = track['link']
                     c_link_path = get_url_path(c_link)
-                    c_match = DeezS.select_dwsongs(c_link_path,
-                                                   self.__n_quality)
+                    c_match = next((c_track for c_track in c_matchs
+                                    if c_link_path == c_track['link']), None)
 
                     if not c_match:
-                        tg_bot.send_message(
-                            chat_id=self.__chat_id,
-                            text=f"The song {c_link} isn't avalaible :(")
-
+                        self.__check_track(c_link)
                         continue
 
-                    c_file_id = c_match['file_id']
+                    audio_file_id = next(
+                        (msg.audio.file_id for msg in messages
+                         if c_match['msg_id'] == msg.message_id), None)
 
                     try:
-                        self.__upload_audio(c_file_id)
+                        self.__upload_audio(audio_file_id)
                     except BadRequest:
-                        DeezS.delete_dwsongs(c_file_id)
+                        DeezS.delete_dwsongs(c_match['msg_id'])
                         self.__check_track(c_link)
         else:
             try:
                 self.__download_album(link)
             except Exception as error:
                 self.__send_for_debug(link, error)
+
+    def __check_playlist(self, tracks, mode):
+        links = []
+        matchs = []
+        spotify = {}
+        ignore = {}
+        messages = []
+
+        if mode == "deezer":
+            links = [get_url_path(track['link'] for track in tracks)]
+        else:
+            for idx, track in enumerate(tracks):
+                c_track = track['track']
+                if c_track:
+                    if c_track['external_urls']:
+                        spoty_url = c_track['external_urls']['spotify']
+                        try:
+                            link = convert_spoty_to_dee_link_track(spoty_url)
+                            links.append(link)
+                            spotify[idx] = link
+                        except (NoDataApi, TrackNotFound):
+                            ignore[idx] = f"Cannot download {spoty_url} :("
+                            continue
+                    else:
+                        ignore[
+                            idx] = f"The track \"{c_track['name']}\" is not avalaible on Spotify :("
+                        continue
+                else:
+                    ignore[idx] = "None"
+                    continue
+
+        if links:
+            matchs = DeezS.select_multiple_dwsongs(links, self.__n_quality)
+
+            if matchs.retrieved > 0:
+                messages = tg_user_api.get_messages(bunker_channel, [
+                    tracks['msg_id']
+                    for tracks in matchs if tracks['msg_id'] != 0
+                ])
+
+        for c_idx, track in enumerate(tracks):
+            if mode == 'spotify':
+                if c_idx in ignore:
+                    if ignore[idx] != "None":
+                        tg_bot.send_message(chat_id=self.__chat_id,
+                                            text=ignore[idx])
+                    continue
+                elif c_idx in spotify:
+                    c_link = spotify[c_idx]
+            else:
+                c_link = track['link']
+
+            c_link_path = get_url_path(c_link)
+            c_match = next(
+                (c_track
+                 for c_track in matchs if c_link_path == c_track['link']),
+                None)
+
+            if not c_match:
+                self.__check_track(c_link)
+                continue
+
+            audio_file_id = next(
+                (msg.audio.file_id
+                 for msg in messages if c_match['msg_id'] == msg.message_id),
+                None)
+
+            try:
+                self.__upload_audio(audio_file_id)
+            except BadRequest:
+                DeezS.delete_dwsongs(c_match['msg_id'])
+                self.__check_track(c_link)
 
     def download(self, link):
         try:
@@ -522,39 +606,7 @@ class DW:
                         f"This playlist contains {nb_tracks} tracks only the first {max_song_per_playlist} will be downloaded"
                     )
 
-                for track, index in zip(tracks, range(max_song_per_playlist)):
-                    if mode == "deezer":
-                        c_link = track['link']
-
-                    elif mode == "spotify":
-                        c_track = track['track']
-
-                        if not c_track:
-                            continue
-
-                        external_urls = c_track['external_urls']
-
-                        if not external_urls:
-                            tg_bot.send_message(
-                                chat_id=self.__chat_id,
-                                text=
-                                f"The track \"{c_track['name']}\" is not avalaible on Spotify :("
-                            )
-
-                            continue
-
-                        spoty_url = external_urls['spotify']
-
-                        try:
-                            c_link = convert_spoty_to_dee_link_track(spoty_url)
-                        except (NoDataApi, TrackNotFound):
-                            tg_bot.send_message(
-                                chat_id=self.__chat_id,
-                                text=f"Cannot download {spoty_url} :(")
-
-                            continue
-
-                    self.__check_track(c_link)
+                self.__check_playlist(tracks[:max_song_per_playlist], mode)
 
             else:
                 tg_bot.send_message(

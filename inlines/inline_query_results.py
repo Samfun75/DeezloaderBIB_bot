@@ -3,6 +3,8 @@
 from helpers.MongoDb_help import DeezS
 from utils.utils import my_round, get_url_path
 from configs.customs import not_found_query_gif
+from configs.set_configs import tg_user_api
+from configs.bot_settings import bunker_channel
 
 from telegram import (InlineQueryResultArticle, InputTextMessageContent,
                       InlineQueryResultAudio, InlineQueryResultCachedAudio,
@@ -41,15 +43,29 @@ def create_result_article_track(datas):
 
 def create_result_article_track_audio(datas, quality):
     results = []
+    messages = []
+    audio_file_id = None
+    links = [get_url_path(data['link']) for data in datas]
+    matchs = DeezS.select_multiple_dwsongs(links, quality)
+
+    if matchs.retrieved > 0:
+        messages = tg_user_api.get_messages(
+            bunker_channel,
+            [tracks['msg_id'] for tracks in matchs if tracks['msg_id'] != 0])
 
     for data in datas:
         ids = data['id']
         link = get_url_path(data['link'])
-        match = DeezS.select_dwsongs(link, quality)
+        match = next((tracks for tracks in matchs if link == tracks['link']),
+                     None)
 
         if match:
-            audio_file_id = match['file_id']
+            audio_file_id = next(
+                (msg.audio.file_id
+                 for msg in messages if match['msg_id'] == msg.message_id),
+                None)
 
+        if audio_file_id:
             article = InlineQueryResultCachedAudio(
                 id=ids,
                 audio_file_id=audio_file_id,
@@ -70,15 +86,29 @@ def create_result_article_track_audio(datas, quality):
 
 def create_result_article_track_and_audio(datas, quality):
     results = []
+    messages = []
+    audio_file_id = None
+    links = [get_url_path(data['link']) for data in datas]
+    matchs = DeezS.select_multiple_dwsongs(links, quality)
+
+    if matchs.retrieved > 0:
+        messages = tg_user_api.get_messages(
+            bunker_channel,
+            [tracks['msg_id'] for tracks in matchs if tracks['msg_id'] != 0])
 
     for data in datas:
         ids = data['id']
         link = get_url_path(data['link'])
-        match = DeezS.select_dwsongs(link, quality)
+        match = next((track for track in matchs if link == track['link']),
+                     None)
 
         if match:
-            audio_file_id = match['file_id']
+            audio_file_id = next(
+                (msg.audio.file_id
+                 for msg in messages if match['msg_id'] == msg.message_id),
+                None)
 
+        if audio_file_id:
             article = InlineQueryResultCachedAudio(
                 id=ids,
                 audio_file_id=audio_file_id,
