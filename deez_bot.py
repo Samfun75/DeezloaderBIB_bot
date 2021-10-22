@@ -254,7 +254,10 @@ def handle_callback_queries(update: Update, context):
 
 def audio_handler(update: Update, context):
     msg = update.message
-    chat_id = msg.from_user.id
+    if msg.from_user:
+        chat_id = msg.from_user.id
+    else:
+        chat_id = msg.chat.id
     msg_id = msg.message_id
     date = msg.date
     help_check_user(chat_id, date)
@@ -316,7 +319,10 @@ def audio_handler(update: Update, context):
 
 def start_command(update: Update, context):
     msg = update.message
-    chat_id = msg.from_user.id
+    if msg.from_user:
+        chat_id = msg.from_user.id
+    else:
+        chat_id = msg.chat.id
     date = msg.date
     help_check_user(chat_id, date)
 
@@ -327,7 +333,10 @@ def start_command(update: Update, context):
 
 def settings_command(update: Update, context):
     msg = update.message
-    chat_id = msg.from_user.id
+    if msg.from_user:
+        chat_id = msg.from_user.id
+    else:
+        chat_id = msg.chat.id
     date = msg.date
     help_check_user(chat_id, date)
     c_user_data = users_data[chat_id]
@@ -339,7 +348,10 @@ def settings_command(update: Update, context):
 
 def quality_command(update: Update, context):
     msg = update.message
-    chat_id = msg.from_user.id
+    if msg.from_user:
+        chat_id = msg.from_user.id
+    else:
+        chat_id = msg.chat.id
     date = msg.date
     help_check_user(chat_id, date)
     c_user_data = users_data[chat_id]
@@ -351,7 +363,10 @@ def quality_command(update: Update, context):
 
 def managing_banned_command(update: Update, context):
     msg = update.message
-    chat_id = msg.from_user.id
+    if msg.from_user:
+        chat_id = msg.from_user.id
+    else:
+        chat_id = msg.chat.id
 
     bot.send_message(chat_id=chat_id,
                      text="Banned users",
@@ -360,7 +375,10 @@ def managing_banned_command(update: Update, context):
 
 def add_banned_command(update: Update, context):
     msg = update.message
-    chat_id = msg.from_user.id
+    if msg.from_user:
+        chat_id = msg.from_user.id
+    else:
+        chat_id = msg.chat.id
 
     if not chat_id in roots_data:
         roots_data[chat_id] = {"stage": None}
@@ -417,7 +435,10 @@ def send_global_msg_command(update: Update, context):
 
 def shazam_command(update: Update, context):
     msg = update.message
-    chat_id = msg.from_user.id
+    if msg.from_user:
+        chat_id = msg.from_user.id
+    else:
+        chat_id = msg.chat.id
     date = msg.date
     help_check_user(chat_id, date)
 
@@ -426,7 +447,10 @@ def shazam_command(update: Update, context):
 
 def kill_dw_command(update: Update, context):
     msg = update.message
-    chat_id = msg.from_user.id
+    if msg.from_user:
+        chat_id = msg.from_user.id
+    else:
+        chat_id = msg.chat.id
     date = msg.date
     help_check_user(chat_id, date)
     c_user_data = users_data[chat_id]
@@ -448,7 +472,10 @@ def kill_dw_command(update: Update, context):
 
 def info_command(update: Update, context):
     msg = update.message
-    chat_id = msg.from_user.id
+    if msg.from_user:
+        chat_id = msg.from_user.id
+    else:
+        chat_id = msg.chat.id
     date = msg.date
     help_check_user(chat_id, date)
 
@@ -460,7 +487,10 @@ def info_command(update: Update, context):
 
 def reasons_command(update: Update, context):
     msg = update.message
-    chat_id = msg.from_user.id
+    if msg.from_user:
+        chat_id = msg.from_user.id
+    else:
+        chat_id = msg.chat.id
     date = msg.date
     help_check_user(chat_id, date)
 
@@ -469,7 +499,10 @@ def reasons_command(update: Update, context):
 
 def help_command(update: Update, context):
     msg = update.message
-    chat_id = msg.from_user.id
+    if msg.from_user:
+        chat_id = msg.from_user.id
+    else:
+        chat_id = msg.chat.id
     date = msg.date
     help_check_user(chat_id, date)
 
@@ -480,7 +513,10 @@ def help_command(update: Update, context):
 
 def feedback_command(update: Update, context):
     msg = update.message
-    chat_id = msg.from_user.id
+    if msg.from_user:
+        chat_id = msg.from_user.id
+    else:
+        chat_id = msg.chat.id
     date = msg.date
     help_check_user(chat_id, date)
 
@@ -489,7 +525,10 @@ def feedback_command(update: Update, context):
 
 def donate_command(update: Update, context):
     msg = update.message
-    chat_id = msg.from_user.id
+    if msg.from_user:
+        chat_id = msg.from_user.id
+    else:
+        chat_id = msg.chat.id
     date = msg.date
     help_check_user(chat_id, date)
 
@@ -500,7 +539,10 @@ def donate_command(update: Update, context):
 
 def msgs_handler(update: Update, context):
     msg = update.message
-    chat_id = msg.from_user.id
+    if msg.from_user:
+        chat_id = msg.from_user.id
+    else:
+        chat_id = msg.chat.id
     text = msg.text
 
     if chat_id in roots_data:
@@ -523,7 +565,10 @@ def msgs_handler(update: Update, context):
 
 def controls_links(update: Update, context):
     msg = update.message
-    chat_id = msg.from_user.id
+    if msg.from_user:
+        chat_id = msg.from_user.id
+    else:
+        chat_id = msg.chat.id
     date = msg.date
     help_check_user(chat_id, date)
     entity_link = msg.entities[0]
