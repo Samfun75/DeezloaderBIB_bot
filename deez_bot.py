@@ -53,13 +53,13 @@ queues_finished = [0]
 tg_user_api.start()
 users_data = {}
 roots_data = {}
+job = tg_bot_api.job_queue
 PORT = int(os.environ.get('PORT', 8443))
 
 dw_helper = DOWNLOAD_HELP(queues_started, queues_finished, tg_user_api)
 
 basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            level=WARN,
-            filename=log_errors)
+            level=WARN)
 
 to_ban = Filters.user(banned_ids)
 
@@ -668,35 +668,32 @@ tg_bot_api.start_webhook(
     webhook_url='https://samfunmusicbot-new.herokuapp.com/' + webhook)
 
 
-def checking():
-    while True:
-        sleep(time_sleep)
-        dir_size = get_download_dir_size()
-        print(
-            f"STATUS DOWNLOADS {queues_started[0]}/{queues_finished[0]} {dir_size}/{download_dir_max_size}"
-        )
+def checking(context):
+    dir_size = get_download_dir_size()
+    print(
+        f"STATUS DOWNLOADS {queues_started[0]}/{queues_finished[0]} {dir_size}/{download_dir_max_size}"
+    )
 
-        if (dir_size >= download_dir_max_size) or (queues_started[0]
-                                                   == queues_finished[0]):
-            dispatcher.stop()
-            kill_threads(users_data)
-            sleep(3)
-            queues_started[0] = 0
-            queues_finished[0] = 0
-            clear_download_dir()
-            clear_recorded_dir()
-            dispatcher.start()
+    if (dir_size >= download_dir_max_size) and (queues_started[0]
+                                                == queues_finished[0]):
+        dispatcher.stop()
+        kill_threads(users_data)
+        sleep(3)
+        queues_started[0] = 0
+        queues_finished[0] = 0
+        clear_download_dir()
+        clear_recorded_dir()
+        start_dis = magicThread(target=dispatcher.start)
+        start_dis.start()
 
 
-check_thread = magicThread(target=checking)
-check_thread.start()
+job.run_repeating(checking, interval=time_sleep, first=10)
 
 tg_user_start()
 
 print("\nEXITTING WAIT A FEW SECONDS :)")
 tg_bot_api.stop()
 tg_user_api.stop()
-check_thread.kill()
 kill_threads(users_data)
 clear_download_dir()
 clear_recorded_dir()
