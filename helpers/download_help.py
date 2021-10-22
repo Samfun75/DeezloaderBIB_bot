@@ -16,6 +16,7 @@ from deezloader.__dee_api__ import API as deezer_API
 from deezloader.__deezer_settings__ import qualities
 from configs.set_configs import deez_api, tg_bot_api, tg_user_api
 from inlines.inline_keyboards import create_keyboard_artist
+from pyrogram.errors import BadRequest as PyrogramBR
 
 from .MongoDb_help import DeezS
 
@@ -362,7 +363,7 @@ class DW:
                 file_msg = tg_user_api.get_messages(c_match['chat_id'],
                                                     c_match['msg_id'])
                 self.__upload_audio(file_msg.audio.file_id)
-            except BadRequest:
+            except (BadRequest, PyrogramBR):
                 DeezS.delete_dwsongs(c_match['msg_id'])
                 self.__check_track(link)
         else:
@@ -379,9 +380,11 @@ class DW:
                             try:
                                 alt_file_msg = tg_user_api.get_messages(
                                     alt_match['chat_id'], alt_match['msg_id'])
-                                self.__upload_audio(alt_file_msg.audio.file_id)
+                                caption = f"⚠ {self.__quality} Unavailable. Downloaded {qualities[ql]['s_quality']}"
+                                self.__upload_audio(alt_file_msg.audio.file_id,
+                                                    caption=caption)
                                 break
-                            except BadRequest:
+                            except (BadRequest, PyrogramBR):
                                 DeezS.delete_dwsongs(alt_match['msg_id'])
                                 self.__check_track(link)
                         else:
@@ -407,7 +410,7 @@ class DW:
                     file_msg = tg_user_api.get_messages(
                         c_match['chat_id'], c_match['msg_id'])
                     self.__upload_zip(file_msg.document.file_id)
-                except BadRequest:
+                except (BadRequest, PyrogramBR):
                     DeezS.delete_dwsongs(c_match['msg_id'])
                     self.__check_album(link, tracks)
 
@@ -416,12 +419,15 @@ class DW:
                     c_links, self.__n_quality)
                 messages = []
 
-                if c_matchs.retrieved > 0:
-                    messages = tg_user_api.get_messages(
-                        bunker_channel, [
-                            tracks['msg_id']
-                            for tracks in c_matchs if tracks['msg_id'] != 0
-                        ])
+                if c_matchs:
+                    try:
+                        messages = tg_user_api.get_messages(
+                            bunker_channel, [
+                                tracks['msg_id']
+                                for tracks in c_matchs if tracks['msg_id'] != 0
+                            ])
+                    except PyrogramBR as error:
+                        self.__send_for_debug(link, error)
 
                 for track in tracks:
                     c_link = track['link']
@@ -470,13 +476,16 @@ class DW:
                                     c_links, qualities[ql]['s_quality'])
                                 messages = []
 
-                                if c_matchs.retrieved > 0:
-                                    messages = tg_user_api.get_messages(
-                                        bunker_channel, [
-                                            tracks['msg_id']
-                                            for tracks in c_matchs
-                                            if tracks['msg_id'] != 0
-                                        ])
+                                if c_matchs:
+                                    try:
+                                        messages = tg_user_api.get_messages(
+                                            bunker_channel, [
+                                                tracks['msg_id']
+                                                for tracks in c_matchs
+                                                if tracks['msg_id'] != 0
+                                            ])
+                                    except PyrogramBR as error:
+                                        self.__send_for_debug(link, error)
 
                                 for track in tracks:
                                     c_link = track['link']
@@ -494,9 +503,10 @@ class DW:
                                         (msg.audio.file_id for msg in messages
                                          if c_match['msg_id'] == msg.message_id
                                          ), None)
-
+                                    caption = f"⚠ {self.__quality} Unavailable. Downloaded {qualities[ql]['s_quality']}"
                                     try:
-                                        self.__upload_audio(audio_file_id)
+                                        self.__upload_audio(audio_file_id,
+                                                            caption=caption)
                                     except BadRequest:
                                         DeezS.delete_dwsongs(c_match['msg_id'])
                                         self.__check_track(c_link)
@@ -545,7 +555,7 @@ class DW:
         if links:
             matchs = DeezS.select_multiple_dwsongs(links, self.__n_quality)
 
-            if matchs.retrieved > 0:
+            if matchs:
                 messages = tg_user_api.get_messages(bunker_channel, [
                     tracks['msg_id']
                     for tracks in matchs if tracks['msg_id'] != 0
