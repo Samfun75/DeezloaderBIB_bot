@@ -53,17 +53,9 @@ class DeezSongs:
                 chat_id=user_errors,
                 text=f"**{user_session}**\nDatabase Error: {e}")
 
-    def select_dwsongs(self, link, quality):
+    def select_dwsong(self, link):
         try:
-            return self.Songs_collection.find_one(
-                {
-                    "link": link,
-                    "quality": quality
-                }, {
-                    "msg_id": 1,
-                    "chat_id": 1,
-                    "_id": 0
-                })
+            return self.Songs_collection.find({"link": link}, {"_id": 0})
         except Exception as e:
             tg_bot.send_message(
                 chat_id=user_errors,

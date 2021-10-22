@@ -11,8 +11,9 @@ from contextlib import redirect_stdout
 from deezloader.models.track import Track
 from deezloader.models.album import Album
 from deezloader.__utils__ import what_kind
-from deezloader.exceptions import TrackNotFound
+from deezloader.exceptions import TrackNotFound, QualityNotFound
 from deezloader.__dee_api__ import API as deezer_API
+from deezloader.__deezer_settings__ import qualities
 from configs.set_configs import deez_api, tg_bot_api, tg_user_api
 from inlines.inline_keyboards import create_keyboard_artist
 
@@ -156,12 +157,14 @@ class DW:
 
         self.__upload_audio(file.audio.file_id, caption=caption)
 
-    def __download_track(self, url):
+    def __download_track(self, url, quality=None):
+        if not quality:
+            quality = self.__quality
         try:
             track = deez_api.download_trackdee(
                 url,
                 output_dir=output_songs,
-                quality_download=self.__quality,
+                quality_download=quality,
                 recursive_quality=recursive_quality,
                 recursive_download=recursive_download,
                 method_save=method_save)
@@ -305,11 +308,13 @@ class DW:
             tg_bot.send_message(chat_id=self.__chat_id,
                                 text=f"Cannot download {track.song_name} :(")
 
-    def __download_album(self, url):
+    def __download_album(self, url, quality=None):
+        if not quality:
+            quality = self.__quality
         album = deez_api.download_albumdee(
             url,
             output_dir=output_songs,
-            quality_download=self.__quality,
+            quality_download=quality,
             recursive_quality=recursive_quality,
             recursive_download=recursive_download,
             make_zip=make_zip,
@@ -347,40 +352,66 @@ class DW:
 
     def __check_track(self, link):
         link_path = get_url_path(link)
-        match = DeezS.select_dwsongs(link_path, self.__n_quality)
-
-        if match:
+        matchs = DeezS.select_dwsong(link_path)
+        c_match = next(
+            (track
+             for track in matchs if self.__n_quality == track['quality']),
+            None)
+        if c_match:
             try:
-                file_msg = tg_user_api.get_messages(match['chat_id'],
-                                                    match['msg_id'])
+                file_msg = tg_user_api.get_messages(c_match['chat_id'],
+                                                    c_match['msg_id'])
                 self.__upload_audio(file_msg.audio.file_id)
             except BadRequest:
-                DeezS.delete_dwsongs(match['msg_id'])
+                DeezS.delete_dwsongs(c_match['msg_id'])
                 self.__check_track(link)
         else:
             try:
                 self.__download_track(link)
+            except QualityNotFound:
+                for ql in qualities.keys():
+                    if ql != self.__quality:
+                        alt_match = next((
+                            track for track in matchs
+                            if qualities[ql]['s_quality'] == track['quality']),
+                                         None)
+                        if alt_match:
+                            try:
+                                alt_file_msg = tg_user_api.get_messages(
+                                    alt_match['chat_id'], alt_match['msg_id'])
+                                self.__upload_audio(alt_file_msg.audio.file_id)
+                                break
+                            except BadRequest:
+                                DeezS.delete_dwsongs(alt_match['msg_id'])
+                                self.__check_track(link)
+                        else:
+                            try:
+                                self.__download_track(link, quality=ql)
+                            except QualityNotFound:
+                                continue
             except Exception as error:
                 self.__send_for_debug(link, error)
 
     def __check_album(self, link, tracks):
         link_path = get_url_path(link)
-        match = DeezS.select_dwsongs(link_path, self.__n_quality)
+        matchs = DeezS.select_dwsong(link_path)
+        c_links = [get_url_path(track['link'] for track in tracks)]
+        c_match = next(
+            (track
+             for track in matchs if self.__n_quality == track['quality']),
+            None)
 
-        if match:
-            msg_id = match['msg_id']
-
-            if msg_id != 0:
+        if c_match:
+            if c_match['msg_id'] != 0:
                 try:
                     file_msg = tg_user_api.get_messages(
-                        match['chat_id'], match['msg_id'])
+                        c_match['chat_id'], c_match['msg_id'])
                     self.__upload_zip(file_msg.document.file_id)
                 except BadRequest:
-                    DeezS.delete_dwsongs(match['msg_id'])
+                    DeezS.delete_dwsongs(c_match['msg_id'])
                     self.__check_album(link, tracks)
 
             if self.__send_to_user_tracks:
-                c_links = [get_url_path(track['link'] for track in tracks)]
                 c_matchs = DeezS.select_multiple_dwsongs(
                     c_links, self.__n_quality)
                 messages = []
@@ -414,6 +445,70 @@ class DW:
         else:
             try:
                 self.__download_album(link)
+            except QualityNotFound:
+                done = 0
+                for ql in qualities.keys():
+                    if ql != self.__quality:
+                        alt_match = next((
+                            track for track in matchs
+                            if qualities[ql]['s_quality'] == track['quality']),
+                                         None)
+                        if alt_match:
+                            if alt_match['msg_id'] != 0:
+                                try:
+                                    file_msg = tg_user_api.get_messages(
+                                        alt_match['chat_id'],
+                                        alt_match['msg_id'])
+                                    self.__upload_zip(
+                                        file_msg.document.file_id)
+                                except BadRequest:
+                                    DeezS.delete_dwsongs(alt_match['msg_id'])
+                                    self.__check_album(link, tracks)
+
+                            if self.__send_to_user_tracks:
+                                c_matchs = DeezS.select_multiple_dwsongs(
+                                    c_links, qualities[ql]['s_quality'])
+                                messages = []
+
+                                if c_matchs.retrieved > 0:
+                                    messages = tg_user_api.get_messages(
+                                        bunker_channel, [
+                                            tracks['msg_id']
+                                            for tracks in c_matchs
+                                            if tracks['msg_id'] != 0
+                                        ])
+
+                                for track in tracks:
+                                    c_link = track['link']
+                                    c_link_path = get_url_path(c_link)
+                                    c_match = next(
+                                        (c_track for c_track in c_matchs
+                                         if c_link_path == c_track['link']),
+                                        None)
+
+                                    if not c_match:
+                                        self.__check_track(c_link)
+                                        continue
+
+                                    audio_file_id = next(
+                                        (msg.audio.file_id for msg in messages
+                                         if c_match['msg_id'] == msg.message_id
+                                         ), None)
+
+                                    try:
+                                        self.__upload_audio(audio_file_id)
+                                    except BadRequest:
+                                        DeezS.delete_dwsongs(c_match['msg_id'])
+                                        self.__check_track(c_link)
+                            done = 1
+                        else:
+                            try:
+                                self.__download_album(link, quality=ql)
+                                done = 1
+                            except QualityNotFound:
+                                continue
+                if done == 0:
+                    raise TrackNotFound
             except Exception as error:
                 self.__send_for_debug(link, error)
 

@@ -16,7 +16,7 @@ settings_file = "deez_settings.ini"
 root_ids = {304377418}
 output_songs = "Songs/"
 output_shazam = "Records/"
-recursive_quality = True
+recursive_quality = False
 recursive_download = True
 make_zip = True
 method_save = 2
@@ -28,7 +28,7 @@ supported_link = [
     "deezer.page.link"
 ]
 
-time_sleep = 10
+time_sleep = 15
 seconds_limits_album = 30000  #seconds
 seconds_limits_track = 7200
 upload_max_size_user = 2  #GB
