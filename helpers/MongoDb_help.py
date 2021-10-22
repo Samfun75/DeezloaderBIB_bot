@@ -55,26 +55,27 @@ class DeezSongs:
 
     def select_dwsong(self, link):
         try:
-            return self.Songs_collection.find({"link": link}, {"_id": 0})
+            return list(self.Songs_collection.find({"link": link}, {"_id": 0}))
         except Exception as e:
             tg_bot.send_message(
                 chat_id=user_errors,
                 text=f"**{user_session}**\nDatabase Error: {e}")
 
-    def select_multiple_dwsongs(self, links, quality):
+    def select_multiple_dwsongs(self, links, quality, limit=0):
         try:
-            return self.Songs_collection.find(
-                {
-                    "link": {
-                        "$in": links
-                    },
-                    "quality": quality
-                }, {
-                    "msg_id": 1,
-                    "chat_id": 1,
-                    "link": 1,
-                    "_id": 0
-                }).limit(50)
+            return list(
+                self.Songs_collection.find(
+                    {
+                        "link": {
+                            "$in": links
+                        },
+                        "quality": quality
+                    }, {
+                        "msg_id": 1,
+                        "chat_id": 1,
+                        "link": 1,
+                        "_id": 0
+                    }).limit(limit))
         except Exception as e:
             tg_bot.send_message(
                 chat_id=user_errors,
@@ -142,7 +143,11 @@ class DeezUsers:
 
     def select_all_banned(self):
         try:
-            return self.Banned_collection.find({}, {"chat_id": 1, "_id": 0})
+            return list(
+                self.Banned_collection.find({}, {
+                    "chat_id": 1,
+                    "_id": 0
+                }))
         except Exception as e:
             tg_bot.send_message(
                 chat_id=user_errors,
@@ -178,7 +183,11 @@ class DeezUsers:
 
     def select_all_users(self):
         try:
-            return self.Users_collection.find({}, {"_id": 0, "chat_id": 1})
+            return list(
+                self.Users_collection.find({}, {
+                    "_id": 0,
+                    "chat_id": 1
+                }))
         except Exception as e:
             tg_bot.send_message(
                 chat_id=user_errors,
