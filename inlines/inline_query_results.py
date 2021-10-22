@@ -48,7 +48,7 @@ def create_result_article_track_audio(datas, quality):
     links = [get_url_path(data['link']) for data in datas]
     matchs = DeezS.select_multiple_dwsongs(links, quality)
 
-    if matchs.retrieved > 0:
+    if matchs:
         messages = tg_user_api.get_messages(
             bunker_channel,
             [tracks['msg_id'] for tracks in matchs if tracks['msg_id'] != 0])
@@ -91,7 +91,7 @@ def create_result_article_track_and_audio(datas, quality):
     links = [get_url_path(data['link']) for data in datas]
     matchs = DeezS.select_multiple_dwsongs(links, quality)
 
-    if matchs.retrieved > 0:
+    if matchs:
         messages = tg_user_api.get_messages(
             bunker_channel,
             [tracks['msg_id'] for tracks in matchs if tracks['msg_id'] != 0])
