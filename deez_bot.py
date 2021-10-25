@@ -3,7 +3,7 @@
 import os
 from time import sleep
 from telegram import ParseMode
-from logging import basicConfig, WARN
+from logging import basicConfig, WARN, INFO
 from pyrogram import idle as tg_user_start
 from telegram import MessageEntity, Update
 from utils.special_thread import magicThread
@@ -23,7 +23,7 @@ from configs.customs import (not_found_query_gif, shazam_audio_query,
 from configs.bot_settings import (download_dir_max_size, time_sleep,
                                   output_shazam, recorded_file_max_size,
                                   root_ids, bunker_channel, owl_channel,
-                                  max_download_user, log_errors)
+                                  max_download_user, user_errors)
 
 from utils.utils_users_bot import (user_setting_save_db, users_set_cache,
                                    check_flood, get_banned_ids, get_info,
@@ -59,7 +59,7 @@ PORT = int(os.environ.get('PORT', 8443))
 dw_helper = DOWNLOAD_HELP(queues_started, queues_finished, tg_user_api)
 
 basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            level=WARN)
+            level=INFO)
 
 to_ban = Filters.user(banned_ids)
 
@@ -681,27 +681,32 @@ send_global_msg_handler = MessageHandler(filter_owl_channel,
 dispatcher.add_handler(send_global_msg_handler)
 
 filter_url = Filters.entity(MessageEntity.URL)
+filter_bunker_channel = Filters.chat(bunker_channel)
+filter_error_channel = Filters.chat(user_errors)
 
-control_links = MessageHandler((filter_url & ~to_ban),
-                               controls_links,
-                               run_async=True)
+control_links = MessageHandler(
+    (filter_url & ~to_ban & ~filter_bunker_channel & ~filter_error_channel),
+    controls_links,
+    run_async=True)
 
 dispatcher.add_handler(control_links)
 
 filter_text = Filters.text
 
-msgs = MessageHandler((filter_text & ~to_ban), msgs_handler, run_async=True)
+msgs = MessageHandler(
+    (filter_text & ~to_ban & ~filter_bunker_channel & ~filter_error_channel),
+    msgs_handler,
+    run_async=True)
 
 dispatcher.add_handler(msgs)
 
 filter_shazam = (Filters.voice | Filters.audio)
-filter_bunker_channel = Filters.chat(bunker_channel)
 filter_no_bot = Filters.via_bot(bot_chat_id)
 
-audio_msgs = MessageHandler(
-    (filter_shazam & ~filter_no_bot & ~to_ban & ~filter_bunker_channel),
-    audio_handler,
-    run_async=True)
+audio_msgs = MessageHandler((filter_shazam & ~filter_no_bot & ~to_ban
+                             & ~filter_bunker_channel & ~filter_error_channel),
+                            audio_handler,
+                            run_async=True)
 
 dispatcher.add_handler(audio_msgs)
 
