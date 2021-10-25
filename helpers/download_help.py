@@ -398,7 +398,7 @@ class DW:
     def __check_album(self, link, tracks):
         link_path = get_url_path(link)
         matchs = DeezS.select_dwsong(link_path)
-        c_links = [get_url_path(track['link'] for track in tracks)]
+        c_links = [get_url_path(track['link']) for track in tracks]
         c_match = next(
             (track
              for track in matchs if self.__n_quality == track['quality']),
@@ -530,7 +530,7 @@ class DW:
         messages = []
 
         if mode == "deezer":
-            links = [get_url_path(track['link'] for track in tracks)]
+            links = [get_url_path(track['link']) for track in tracks]
         else:
             for idx, track in enumerate(tracks):
                 c_track = track['track']

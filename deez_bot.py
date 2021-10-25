@@ -137,7 +137,9 @@ def handle_inline_queries(update: Update, context):
     results = create_response_article(query, c_user_data)
 
     try:
-        bot.answer_inline_query(inline_query_id=query_id, results=results)
+        bot.answer_inline_query(inline_query_id=query_id,
+                                results=results,
+                                cache_time=7)
     except BadRequest:
         pass
 

@@ -64,6 +64,8 @@ def create_result_article_track_audio(datas, quality):
                 (msg.audio.file_id
                  for msg in messages if match['msg_id'] == msg.message_id),
                 None)
+        else:
+            audio_file_id = None
 
         if audio_file_id:
             article = InlineQueryResultCachedAudio(
@@ -107,6 +109,8 @@ def create_result_article_track_and_audio(datas, quality):
                 (msg.audio.file_id
                  for msg in messages if match['msg_id'] == msg.message_id),
                 None)
+        else:
+            audio_file_id = None
 
         if audio_file_id:
             article = InlineQueryResultCachedAudio(
