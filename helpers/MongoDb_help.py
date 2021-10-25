@@ -5,6 +5,7 @@ import certifi
 import pymongo
 import logging
 from urllib.parse import quote_plus
+from pymongo.errors import DuplicateKeyError
 from configs.bot_settings import user_errors, user_session
 from configs.set_configs import db_host, db_name, db_password, db_type, db_username, tg_bot_api
 
@@ -40,6 +41,12 @@ class DeezSongs:
                 "msg_id": msg_id,
                 "quality": quality
             })
+        except DuplicateKeyError as e:
+            tg_bot.send_message(
+                chat_id=user_errors,
+                text=
+                f"**{user_session}**\nDatabase Error: {e.details['writeErrors'][-1]['errmsg']}"
+            )
         except Exception as e:
             tg_bot.send_message(
                 chat_id=user_errors,

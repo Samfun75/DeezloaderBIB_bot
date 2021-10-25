@@ -19,7 +19,7 @@ output_shazam = "Records/"
 recursive_quality = False
 recursive_download = True
 make_zip = True
-method_save = 2
+method_save = 1
 download_dir_max_size = 1  #GB
 donation_link = "https://www.paypal.com/paypalme/Samfun75"
 
