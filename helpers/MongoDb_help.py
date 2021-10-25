@@ -44,9 +44,7 @@ class DeezSongs:
         except DuplicateKeyError as e:
             tg_bot.send_message(
                 chat_id=user_errors,
-                text=
-                f"**{user_session}**\nDatabase Error: {e.details['writeErrors'][-1]['errmsg']}"
-            )
+                text=f"**{user_session}**\nDatabase Error: {e.details}")
         except Exception as e:
             tg_bot.send_message(
                 chat_id=user_errors,
