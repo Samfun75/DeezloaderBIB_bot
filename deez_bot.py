@@ -136,10 +136,16 @@ def handle_inline_queries(update: Update, context):
     c_user_data = users_data[chat_id]
     results = create_response_article(query, c_user_data)
 
+    search_method = c_user_data['search_method']
+    if search_method == "results_article":
+        cache_time = 10
+    else:
+        cache_time = 150
+
     try:
         bot.answer_inline_query(inline_query_id=query_id,
                                 results=results,
-                                cache_time=7)
+                                cache_time=cache_time)
     except BadRequest:
         pass
 
