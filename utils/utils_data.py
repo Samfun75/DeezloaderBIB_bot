@@ -247,7 +247,6 @@ def create_response_article(query: str, user_data):
 
     try:
         data = c_api(c_query)
-        print(data)
     except NoDataApi:
         return create_result_not_found()
 
