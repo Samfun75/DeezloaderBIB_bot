@@ -244,12 +244,13 @@ def create_response_article(query: str, user_data):
         else:
             c_api = deezer_api.search
             c_create_article, mode = __lazy_create(search_method)
-    print(c_api, c_query, c_create_article, mode)
+
     try:
         data = c_api(c_query)
+        print(data)
     except NoDataApi:
         return create_result_not_found()
-    print(data)
+
     if "error" in data:
         return create_result_not_found()
 
@@ -277,5 +278,4 @@ def create_response_article(query: str, user_data):
     elif mode == "results_audio":
         data = data['data']
         results = c_create_article(data, quality)
-    print(results)
     return results

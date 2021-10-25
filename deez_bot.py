@@ -3,7 +3,7 @@
 import os
 from time import sleep
 from telegram import ParseMode
-from logging import basicConfig, WARN, INFO
+from logging import basicConfig, WARN
 from pyrogram import idle as tg_user_start
 from telegram import MessageEntity, Update
 from utils.special_thread import magicThread
@@ -59,7 +59,7 @@ PORT = int(os.environ.get('PORT', 8443))
 dw_helper = DOWNLOAD_HELP(queues_started, queues_finished, tg_user_api)
 
 basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            level=INFO)
+            level=WARN)
 
 to_ban = Filters.user(banned_ids)
 
