@@ -47,28 +47,25 @@ def create_result_article_track_audio(datas, quality):
     audio_file_id = None
     links = [get_url_path(data['link']) for data in datas]
     matchs = DeezS.select_multiple_dwsongs(links, quality)
-    print(links)
-    print(len(matchs))
+
     if matchs:
         messages = tg_user_api.get_messages(
             bunker_channel,
             [tracks['msg_id'] for tracks in matchs if tracks['msg_id'] != 0])
-
+    print(len(messages))
     for data in datas:
         ids = data['id']
         link = get_url_path(data['link'])
-        match = next((tracks for tracks in matchs if link == tracks['link']),
+        match = next((track for track in matchs if link == track['link']),
                      None)
 
         if match:
+            print(data['title'])
             audio_file_id = next(
                 (msg.audio.file_id
                  for msg in messages if match['msg_id'] == msg.message_id),
                 None)
-        else:
-            audio_file_id = None
 
-        if audio_file_id:
             article = InlineQueryResultCachedAudio(
                 id=ids,
                 audio_file_id=audio_file_id,
@@ -124,10 +121,7 @@ def create_result_article_track_and_audio(datas, quality):
                 (msg.audio.file_id
                  for msg in messages if match['msg_id'] == msg.message_id),
                 None)
-        else:
-            audio_file_id = None
 
-        if audio_file_id:
             article = InlineQueryResultCachedAudio(
                 id=ids,
                 audio_file_id=audio_file_id,
