@@ -52,7 +52,7 @@ def create_result_article_track_audio(datas, quality):
         messages = tg_user_api.get_messages(
             bunker_channel,
             [tracks['msg_id'] for tracks in matchs if tracks['msg_id'] != 0])
-    print(messages)
+
     for data in datas:
         ids = data['id']
         link = get_url_path(data['link'])
@@ -60,12 +60,14 @@ def create_result_article_track_audio(datas, quality):
                      None)
 
         if match:
-            print(data['title'])
             audio_file_id = next(
                 (msg.audio.file_id
                  for msg in messages if match['msg_id'] == msg.message_id),
                 None)
+        else:
+            audio_file_id = None
 
+        if audio_file_id:
             article = InlineQueryResultCachedAudio(
                 id=ids,
                 audio_file_id=audio_file_id,
@@ -121,7 +123,10 @@ def create_result_article_track_and_audio(datas, quality):
                 (msg.audio.file_id
                  for msg in messages if match['msg_id'] == msg.message_id),
                 None)
+        else:
+            audio_file_id = None
 
+        if audio_file_id:
             article = InlineQueryResultCachedAudio(
                 id=ids,
                 audio_file_id=audio_file_id,
