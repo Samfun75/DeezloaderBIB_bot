@@ -52,7 +52,7 @@ def create_result_article_track_audio(datas, quality):
         messages = tg_user_api.get_messages(
             bunker_channel,
             [tracks['msg_id'] for tracks in matchs if tracks['msg_id'] != 0])
-    print(len(messages))
+    print(messages)
     for data in datas:
         ids = data['id']
         link = get_url_path(data['link'])
