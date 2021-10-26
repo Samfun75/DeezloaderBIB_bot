@@ -143,9 +143,7 @@ def handle_inline_queries(update: Update, context):
         cache_time = 150
 
     try:
-        bot.answer_inline_query(inline_query_id=query_id,
-                                results=results,
-                                cache_time=cache_time)
+        inline_query.answer(results=results, cache_time=cache_time)
     except BadRequest:
         pass
 

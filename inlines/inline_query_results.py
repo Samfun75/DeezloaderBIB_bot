@@ -73,13 +73,27 @@ def create_result_article_track_audio(datas, quality):
                 audio_file_id=audio_file_id,
             )
         else:
-            article = InlineQueryResultAudio(
-                id=ids,
-                audio_url=data['preview'],
-                title=data['title'],
-                performer=data['artist']['name'],
-                audio_duration=data['duration'],
-                input_message_content=InputTextMessageContent(data['link']))
+            if data['preview']:
+                article = InlineQueryResultAudio(
+                    id=ids,
+                    audio_url=data['preview'],
+                    title=data['title'],
+                    performer=data['artist']['name'],
+                    audio_duration=data['duration'],
+                    input_message_content=InputTextMessageContent(
+                        data['link']))
+            else:
+                article = InlineQueryResultArticle(
+                    id=data['id'],
+                    title=data['title'],
+                    input_message_content=InputTextMessageContent(
+                        data['link']),
+                    description=(
+                        f"Artist: {data['artist']['name']}" +
+                        f"\nAlbum: {data['album']['title']}" +
+                        f"\nDuration: {my_round(data['duration'] / 60)}" +
+                        f"\nRank: {data['rank']}"),
+                    thumb_url=data['album']['cover_big'])
 
         results.append(article)
 
