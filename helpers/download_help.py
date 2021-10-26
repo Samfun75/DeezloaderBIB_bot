@@ -363,7 +363,7 @@ class DW:
                 file_msg = tg_user_api.get_messages(c_match['chat_id'],
                                                     c_match['msg_id'])
                 self.__upload_audio(file_msg.audio.file_id)
-            except (BadRequest, PyrogramBR):
+            except (BadRequest, PyrogramBR, AttributeError):
                 DeezS.delete_dwsongs(c_match['msg_id'])
                 self.__check_track(link)
         else:
@@ -384,7 +384,7 @@ class DW:
                                 self.__upload_audio(alt_file_msg.audio.file_id,
                                                     caption=caption)
                                 break
-                            except (BadRequest, PyrogramBR):
+                            except (BadRequest, PyrogramBR, AttributeError):
                                 DeezS.delete_dwsongs(alt_match['msg_id'])
                                 self.__check_track(link)
                         else:
@@ -410,7 +410,7 @@ class DW:
                     file_msg = tg_user_api.get_messages(
                         c_match['chat_id'], c_match['msg_id'])
                     self.__upload_zip(file_msg.document.file_id)
-                except (BadRequest, PyrogramBR):
+                except (BadRequest, PyrogramBR, AttributeError):
                     DeezS.delete_dwsongs(c_match['msg_id'])
                     self.__check_album(link, tracks)
 
@@ -438,14 +438,13 @@ class DW:
                     if not c_match:
                         self.__check_track(c_link)
                         continue
-
-                    audio_file_id = next(
-                        (msg.audio.file_id for msg in messages
-                         if c_match['msg_id'] == msg.message_id), None)
-
                     try:
+                        audio_file_id = next(
+                            (msg.audio.file_id for msg in messages
+                             if c_match['msg_id'] == msg.message_id), None)
+
                         self.__upload_audio(audio_file_id)
-                    except BadRequest:
+                    except (BadRequest, AttributeError):
                         DeezS.delete_dwsongs(c_match['msg_id'])
                         self.__check_track(c_link)
         else:
@@ -467,7 +466,7 @@ class DW:
                                         alt_match['msg_id'])
                                     self.__upload_zip(
                                         file_msg.document.file_id)
-                                except BadRequest:
+                                except (BadRequest, AttributeError):
                                     DeezS.delete_dwsongs(alt_match['msg_id'])
                                     self.__check_album(link, tracks)
 
@@ -498,16 +497,17 @@ class DW:
                                     if not c_match:
                                         self.__check_track(c_link)
                                         continue
-
-                                    audio_file_id = next(
-                                        (msg.audio.file_id for msg in messages
-                                         if c_match['msg_id'] == msg.message_id
-                                         ), None)
-                                    caption = f"⚠ {self.__quality} Unavailable. Downloaded {qualities[ql]['s_quality']}"
                                     try:
+                                        audio_file_id = next(
+                                            (msg.audio.file_id
+                                             for msg in messages
+                                             if c_match['msg_id'] ==
+                                             msg.message_id), None)
+                                        caption = f"⚠ {self.__quality} Unavailable. Downloaded {qualities[ql]['s_quality']}"
+
                                         self.__upload_audio(audio_file_id,
                                                             caption=caption)
-                                    except BadRequest:
+                                    except (BadRequest, AttributeError):
                                         DeezS.delete_dwsongs(c_match['msg_id'])
                                         self.__check_track(c_link)
                             done = 1
@@ -582,15 +582,13 @@ class DW:
             if not c_match:
                 self.__check_track(c_link)
                 continue
-
-            audio_file_id = next(
-                (msg.audio.file_id
-                 for msg in messages if c_match['msg_id'] == msg.message_id),
-                None)
-
             try:
+                audio_file_id = next((msg.audio.file_id for msg in messages
+                                      if c_match['msg_id'] == msg.message_id),
+                                     None)
+
                 self.__upload_audio(audio_file_id)
-            except BadRequest:
+            except (BadRequest, AttributeError):
                 DeezS.delete_dwsongs(c_match['msg_id'])
                 self.__check_track(c_link)
 
