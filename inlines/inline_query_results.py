@@ -47,7 +47,8 @@ def create_result_article_track_audio(datas, quality):
     audio_file_id = None
     links = [get_url_path(data['link']) for data in datas]
     matchs = DeezS.select_multiple_dwsongs(links, quality)
-
+    print(links)
+    print(len(matchs))
     if matchs:
         messages = tg_user_api.get_messages(
             bunker_channel,
